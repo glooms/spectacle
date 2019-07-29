@@ -45,14 +45,30 @@ color:
               func dec
               func check
 decls:
-      decls.go
-              var i
-              var U V W
-              var k
-              var x y
-              var
-                 j
-                 u                 v                 s
-              var re im a
-              var entries
+      consts.go
+               const a
+               const
+                    b                    c
+                    d                    e
+               const f
+               const g
+               const h
+               const
+                    A
+                    B
+                    C
+      funcs.go
               func complexSqr
+              func do
+      types.go
+              type A
+      vars.go
+             var i
+             var U V W
+             var k
+             var x y
+             var
+                j
+                u                v                s
+             var entries
+             var m1 m2 m3

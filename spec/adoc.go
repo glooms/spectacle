@@ -54,8 +54,8 @@ func walker(path string, fi os.FileInfo, err error) error {
 			}
 		}
     if pkg.Name == "decls" {
-		  s := New(pkg) // This is the important thing
-		  fmt.Println(s.String())
+		  p := New(pkg) // This is the important thing
+		  fmt.Println(p.String())
     }
 	}
 	return nil
