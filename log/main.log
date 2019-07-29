@@ -1,0 +1,58 @@
+. (main):
+         example.go
+                   import
+                         "time"
+                         "./animator"
+                         "./color"
+                   func example
+         main.go
+                import
+                      "./gdoc"
+                      "./spec"
+                      "fmt"
+                      "os"
+                func GdocEx
+                func main
+animator:
+         animator.go
+                    import
+                          "fmt"
+                          "time"
+                          "../color"
+                    var Wait
+                    const A
+                    type Animator
+                    func New
+                    func Animate
+                    func SetColor
+                    func animate
+                    func print
+                    func wait
+                    func Stop
+                    func init
+color:
+      color.go
+              import
+                    "encoding/hex"
+                    "fmt"
+                    "os"
+              type Color
+              func New
+              func init
+              func String
+              func Apply
+              func color
+              func dec
+              func check
+decls:
+      decls.go
+              var i
+              var U V W
+              var k
+              var x y
+              var
+                 j
+                 u                 v                 s
+              var re im a
+              var entries
+              func complexSqr
