@@ -314,10 +314,10 @@ func resolveType(typstr string) string {
   parts := strings.Split(typstr, ".")
   if len(parts) > 1 {
     typ := cur_pkg.lookupType(parts[0])
-    for _, member := range parts[1:] {
+    for _, part := range parts[1:] {
 typeLoop:
       for i, name := range typ.FieldNames {
-        if name == member {
+        if name == part {
           ftype := typ.FieldTypes[i]
           typ = cur_pkg.lookupType(ftype)
           if typ == nil {
