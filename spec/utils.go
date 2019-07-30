@@ -1,6 +1,7 @@
 package spec
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 )
@@ -16,7 +17,7 @@ func sillySort(m reflect.Value) []string {
 	filtered := 0
 	for i, k := range m.MapKeys() {
 		s := k.String()
-    // if s != "" && unicode.IsUpper(rune(s[0])) {
+		// if s != "" && unicode.IsUpper(rune(s[0])) {
 		if true {
 			sorted[i] = s
 		} else {
@@ -27,3 +28,7 @@ func sillySort(m reflect.Value) []string {
 	return sorted[filtered:]
 }
 
+func vprint(i interface{}, prefix ...interface{}) {
+	fmt.Print(prefix...)
+	fmt.Printf("%#v\n", i)
+}
