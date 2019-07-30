@@ -29,7 +29,7 @@ func walker(path string, fi os.FileInfo, err error) error {
 	}
 	for _, pkg := range pkgs {
 		if pkg.Name == "decls" {
-			p := New(pkg) // This is the important thing
+			p := NewPkg(pkg) // This is the important thing
 			fmt.Println(p.String())
 		}
 	}

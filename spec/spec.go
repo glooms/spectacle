@@ -9,6 +9,8 @@ import (
 type Package struct {
 	Name string
 
+  Imports map[string]*ast.Object
+
 	Consts []*Value
 	Vars   []*Value
 	Types  []*Type
@@ -45,7 +47,7 @@ type Func struct {
 
 var cur_pkg *Package
 
-func New(pkg *ast.Package) *Package {
+func NewPkg(pkg *ast.Package) *Package {
 	p := &Package{}
 
 	p.Name = pkg.Name
@@ -60,6 +62,11 @@ func New(pkg *ast.Package) *Package {
   p.read(pkg)
 
 	return p
+}
+
+var lookup = map[string]string {
+  "false": "bool",
+  "true": "bool",
 }
 
 func (p *Package) lookupFunc(name string) *Func {
@@ -106,17 +113,21 @@ func (p *Package) String() string {
 	if p.Name == "internal" {
 		return ""
 	}
+  warn := "\x1b[38;2;200;00;100m" + " INCOMPLETE" + "\x1b[0m"
 
 	str += "package name: " + p.Name + "\n"
 
 	str += "consts:\n"
 	for _, c := range p.Consts {
 		for i, name := range c.Names {
+			str += "  " + name
 			if i < len(c.Types) {
-				str += "  " + name + " " + c.Types[i] + "\n"
-			} else {
-				str += "  " + name + " INCOMPLETE\n"
-			}
+        str += " " + c.Types[i]
+      }
+      if i < len(c.Values) {
+        str += " " + c.Values[i]
+      }
+      str += "\n"
 		}
 	}
 
@@ -160,7 +171,7 @@ func (p *Package) String() string {
 			if i < len(v.Types) {
 				str += "  " + name + " " + resolveType(v.Types[i]) + "\n"
 			} else {
-				str += "  " + name + " INCOMPLETE\n"
+				str += "  " + name + warn + "\n"
 			}
 		}
 	}
@@ -204,6 +215,7 @@ func (p *Package) String() string {
 }
 
 func (p *Package) read(pkg *ast.Package) {
+  p.Imports = pkg.Imports
 	for _, file := range pkg.Files {
 		for _, decl := range file.Decls {
 			p.readDecl(decl)
@@ -224,14 +236,14 @@ func (p *Package) readDecl(d ast.Decl) {
 
 			for _, spec := range d.Specs {
 				val := spec.(*ast.ValueSpec)
-				p.Vars = append(p.Vars, readValue(val))
+				p.Vars = append(p.Vars, readValueSpec(val))
 			}
 
 		case token.CONST:
 
 			for _, spec := range d.Specs {
 				val := spec.(*ast.ValueSpec)
-				p.Consts = append(p.Consts, readValue(val))
+				p.Consts = append(p.Consts, readValueSpec(val))
 			}
 
 		case token.TYPE:
@@ -248,7 +260,7 @@ func (p *Package) readDecl(d ast.Decl) {
 	}
 }
 
-// readValue reads a ValueSpec to map variables/constants
+// readValueSpec reads a ValueSpec to map variables/constants
 // to types and their initial value. (Mostly important in the
 // constant case.)
 //
@@ -256,7 +268,7 @@ func (p *Package) readDecl(d ast.Decl) {
 //   1. assign initial values (if any)
 //   2. handle references
 //
-func readValue(val *ast.ValueSpec) *Value {
+func readValueSpec(val *ast.ValueSpec) *Value {
 	names := make([]string, len(val.Names))
 	for i, id := range val.Names {
 		names[i] = id.Name
@@ -283,17 +295,28 @@ func readValue(val *ast.ValueSpec) *Value {
   // We should probably use the fact that the type in the first case is limited
   // to just a few types of expressions.
 
-	var types []string
-	if val.Type != nil {
+	var types, values []string
+  hasType := val.Type != nil
+	if hasType {
 		typ := readTypeExpr(val.Type)[0]
 		types = make([]string, len(val.Names))
 		for i := 0; i < len(types); i++ {
 			types[i] = typ
 		}
-	} else {
-		types = make([]string, 0, len(val.Names))
+	}
+  if val.Values != nil {
+    if !hasType {
+	    types = make([]string, 0, len(val.Names))
+    }
+    values = make([]string, 0, len(val.Names))
 		for _, v := range val.Values {
-			types = append(types, readTypeExpr(v)...)
+      rtypes, rvalues := readValueExpr(v)
+      if !hasType && rtypes != nil {
+			  types = append(types, rtypes...)
+      }
+      if rvalues != nil {
+        values = append(values, rvalues...)
+      }
 		}
 	}
 
@@ -301,6 +324,7 @@ func readValue(val *ast.ValueSpec) *Value {
 		Names: names,
 		Types: types,
 		Decl:  val,
+    Values: values,
 	}
 	return v
 }
@@ -440,7 +464,7 @@ func readFields(fl *ast.FieldList) (names []string, types []string) {
 // be nice for variables.
 //
 func readTypeExpr(e ast.Expr) []string {
-	vlog(e, "readTypeExpr: ")
+	vlog(e, "type expr: ")
 
 	switch e.(type) {
 
@@ -449,16 +473,11 @@ func readTypeExpr(e ast.Expr) []string {
 		if id.Obj == nil {
 			return []string{id.Name}
 		}
-		return readUseExpr(id)
+    return readTypeObj(id.Obj)
 
 	case *ast.BasicLit:
 		lit := e.(*ast.BasicLit)
 		return []string{strings.ToLower(lit.Kind.String())}
-
-	case *ast.MapType:
-		typ := e.(*ast.MapType)
-		s := "map[" + readTypeExpr(typ.Key)[0] + "]" + readTypeExpr(typ.Value)[0]
-		return []string{s}
 
 	case *ast.FuncType:
 		// This should probably be refactored to a function
@@ -495,57 +514,33 @@ func readTypeExpr(e ast.Expr) []string {
 		sel := e.(*ast.SelectorExpr)
     s := readTypeExpr(sel.X)[0] + "." + readTypeExpr(sel.Sel)[0]
 		return []string{s}
-
-	default:
-		// Probably not a simple type expression, read it as an use expression.
-		return readUseExpr(e)
 	}
+  return nil
 }
 
-func readUseExpr(e ast.Expr) []string {
-	vlog(e, "readUseExpr: ")
+func readValueExpr(e ast.Expr) (types, values []string) {
+	vlog(e, "value expr: ")
 
 	switch e.(type) {
 
   case *ast.Ident:
     id := e.(*ast.Ident)
     o := id.Obj
-    vlog(o, "use: ")
     if o == nil {
-      return nil
+      types = []string{lookup[id.Name]}
+      values = []string{id.Name}
+      return types, values
     }
+    return readValueObj(o)
 
-    switch o.Kind {
-
-    case ast.Typ:
-      if t, ok := o.Decl.(*ast.TypeSpec); ok {
-        return []string{t.Name.Name}
-      }
-
-    case ast.Con:
-      fallthrough
-
-    case ast.Var:
-
-      val := o.Decl.(*ast.ValueSpec)
-      value := cur_pkg.lookupValue(val)
-      for i, n := range value.Names {
-        if n == o.Name {
-          return []string{value.Types[i]}
-        }
-      }
-
-    case ast.Fun:
-      if _, ok := o.Decl.(*ast.FuncDecl); ok {
-        return nil
-      }
-    default:
-      vlog(o, "unhandled: ")
-
-    }
+  case *ast.BasicLit:
+		lit := e.(*ast.BasicLit)
+    types = []string{strings.ToLower(lit.Kind.String())}
+    values = []string{lit.Value}
+		return
 
 	case *ast.IndexExpr:
-		return readUseExpr(e.(*ast.IndexExpr).X)
+		return readValueExpr(e.(*ast.IndexExpr).X)
 
 	case *ast.MapType:
 		// This is the case where the parent was an IndexExpr. In this case,
@@ -563,7 +558,7 @@ func readUseExpr(e ast.Expr) []string {
 		// The last case shows why we can't always just add a bool to the
 		// types as this would be an erroneous type for 'd'.
 		typ := e.(*ast.MapType)
-		return readTypeExpr(typ.Value)
+		return readTypeExpr(typ.Value), nil
 
 	case *ast.CallExpr:
 
@@ -576,56 +571,72 @@ func readUseExpr(e ast.Expr) []string {
 			id := call.Fun.(*ast.Ident)
       f := cur_pkg.lookupFunc(id.Name)
       if f != nil {
-        return f.ReturnTypes
+        return f.ReturnTypes, nil
       }
-      return nil
+      return nil, nil
 
     default:
-      return readUseExpr(call.Fun)
+      return readValueExpr(call.Fun)
 		}
 
  case *ast.SelectorExpr:
    // Getting in to annoying territory.
    sel := e.(*ast.SelectorExpr)
-   _ = readUseExpr(sel.X)
-   _ = readUseExpr(sel.Sel)
-   return nil
+   _, _ = readValueExpr(sel.X)
+   _, _ = readValueExpr(sel.Sel)
+   return nil, nil
 
 
   case *ast.FuncLit:
     lit := e.(*ast.FuncLit)
-    return readUseExpr(lit.Type)
+    return readValueExpr(lit.Type)
 
 	case *ast.FuncType:
 		typ := e.(*ast.FuncType)
     _, types := readFields(typ.Results)
-		return types
+		return types, nil
 	}
+	return nil, nil
+}
+
+// readTypeObj reads an Object which seem to be mostly used when variables
+// reference other declarations and such. This remains to be implemented.
+func readTypeObj(o *ast.Object) []string {
+	// Decl related. Not yet implemented
+	vlog(o, "type obj: ")
+
+  if o.Decl == nil {
+    return nil
+  }
+  switch o.Decl.(type) {
+  case *ast.TypeSpec:
+    t := o.Decl.(*ast.TypeSpec)
+    return []string{t.Name.Name}
+  }
 	return nil
 }
 
-// readObj reads an Object which seem to be mostly used when variables
-// reference other declarations and such. This remains to be implemented.
-func readObj(o *ast.Object) []string {
-	// Decl related. Not yet implemented
-	vlog(o, "readObj: ")
-	switch o.Kind {
-	case ast.Bad:
-	case ast.Pkg:
-	case ast.Con:
-	case ast.Typ:
-		if t, ok := o.Decl.(*ast.TypeSpec); ok {
-			return []string{t.Name.Name}
-		}
-	case ast.Var:
-		if _, ok := o.Decl.(*ast.ValueSpec); ok {
-			return nil
-		}
-	case ast.Fun:
-		if _, ok := o.Decl.(*ast.FuncDecl); ok {
-			return nil
-		}
-	case ast.Lbl:
-	}
-	return nil
+func readValueObj(o *ast.Object) (types, values []string) {
+	vlog(o, "value obj: ")
+
+  if o.Decl == nil {
+    return
+  }
+  switch o.Decl.(type) {
+  case *ast.ValueSpec:
+    val := cur_pkg.lookupValue(o.Decl.(*ast.ValueSpec))
+    vlog(val, "val: ")
+    for i, n := range val.Names {
+      if o.Name == n {
+        if i < len(val.Types) {
+          types = []string{val.Types[i]}
+        }
+        if i < len(val.Values) {
+          values = []string{val.Values[i]}
+        }
+        return
+      }
+    }
+  }
+  return
 }
