@@ -1,4 +1,4 @@
-# spec (placeholder name)
+# spectacle
 An attempt at creating a way to generate API specifications Go packages. As most go packages are documented using `go doc` there doesn't seem to be any standard way of generating programmatically consumable API specifications. The end goal with this repo is to do just that, API specs in `yaml` or `json` for go packages.
 
 ## Run
