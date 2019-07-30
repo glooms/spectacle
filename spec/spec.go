@@ -1,7 +1,6 @@
 package spec
 
 import (
-	"fmt"
 	"go/ast"
 	"go/token"
 	"strings"
@@ -99,7 +98,7 @@ func (p *Package) String() string {
 	var str string
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println(str)
+			log(str)
 			panic(r)
 		}
 	}()
@@ -121,7 +120,7 @@ func (p *Package) String() string {
 		}
 	}
 
-	/* str += "types:\n"
+	str += "types:\n"
 	for _, t := range p.Types {
 	  str += "  type " + t.Name + " "
 	  switch t.Type {
@@ -153,7 +152,7 @@ func (p *Package) String() string {
 	    str += t.Type
 	  }
 	  str += "\n"
-	} */
+	}
 
 	str += "vars:\n"
 	for _, v := range p.Vars {
@@ -166,7 +165,7 @@ func (p *Package) String() string {
 		}
 	}
 
-	/* str += "funcs:\n"
+	str += "funcs:\n"
 	for _, f := range p.Funcs {
 		str += "  func "
 		if f.Receiver != "" { // Maybe these should just be added to the receiver
@@ -200,7 +199,6 @@ func (p *Package) String() string {
 		}
 		str += "\n"
 	}
-	*/
 
 	return str
 }
@@ -264,7 +262,7 @@ func readValue(val *ast.ValueSpec) *Value {
 		names[i] = id.Name
 	}
 
-  fmt.Println(names)
+  log(names)
 
   // We should probably handle the two cases here differently.
   // If val.Type is set it means we have a value specification of the form:
@@ -341,7 +339,7 @@ typeLoop:
 func readFunc(d *ast.FuncDecl) *Func {
 	name := d.Name.Name
 
-  fmt.Println(d.Name.Name)
+  log(d.Name.Name)
 
 	parNames, parTypes := readFields(d.Type.Params)
 	retNames, retTypes := readFields(d.Type.Results)
@@ -377,7 +375,7 @@ func readType(typ *ast.TypeSpec) *Type {
 	var fieldNames, fieldTypes []string
 	var methodNames, methodTypes []string
 
-  fmt.Println(typ.Name.Name)
+  log(typ.Name.Name)
 
 	switch typ.Type.(type) { // What type is typ's Type's type?
 
@@ -442,7 +440,7 @@ func readFields(fl *ast.FieldList) (names []string, types []string) {
 // be nice for variables.
 //
 func readTypeExpr(e ast.Expr) []string {
-	vprint(e, "readTypeExpr: ")
+	vlog(e, "readTypeExpr: ")
 
 	switch e.(type) {
 
@@ -505,14 +503,14 @@ func readTypeExpr(e ast.Expr) []string {
 }
 
 func readUseExpr(e ast.Expr) []string {
-	vprint(e, "readUseExpr: ")
+	vlog(e, "readUseExpr: ")
 
 	switch e.(type) {
 
   case *ast.Ident:
     id := e.(*ast.Ident)
     o := id.Obj
-    vprint(o, "use: ")
+    vlog(o, "use: ")
     if o == nil {
       return nil
     }
@@ -542,7 +540,7 @@ func readUseExpr(e ast.Expr) []string {
         return nil
       }
     default:
-      vprint(o, "unhandled: ")
+      vlog(o, "unhandled: ")
 
     }
 
@@ -610,7 +608,7 @@ func readUseExpr(e ast.Expr) []string {
 // reference other declarations and such. This remains to be implemented.
 func readObj(o *ast.Object) []string {
 	// Decl related. Not yet implemented
-	vprint(o, "readObj: ")
+	vlog(o, "readObj: ")
 	switch o.Kind {
 	case ast.Bad:
 	case ast.Pkg:
