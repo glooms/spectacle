@@ -9,12 +9,16 @@ var (
 	u, v, s = 2.0, 3.0, "bar"
 )
 
-// var re, im, a = complexSqr(-1), 0
+var re, im = complexSqr(-1)
 var entries = map[string]int{"Klas": 1}
 
 var m1, m2, m3 map[bool]bool
 
-// var _, found = entries["Klas"] // map lookup; only interested in "found"
-// var b, c, d = entries["B"], entries["C"], entries["D"]
+var _, found = entries["Klas"] // map lookup; only interested in "found"
+var _b, _c, _d = entries["B"], entries["C"], entries["D"]
 
-// var fa, fb, fc func (bool) int
+var fa, fb, fc func(bool) int
+
+var edge = func(b bool) bool {
+  return b
+}(true)

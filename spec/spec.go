@@ -14,6 +14,8 @@ type Package struct {
 	Vars   []*Value
 	Types  []*Type
 	Funcs  []*Func
+
+  unread []*ast.Decl
 }
 
 type Value struct {
@@ -44,6 +46,8 @@ type Func struct {
 	Receiver    string
 }
 
+var cur_pkg *Package
+
 func New(pkg *ast.Package) *Package {
 	p := &Package{}
 
@@ -54,9 +58,22 @@ func New(pkg *ast.Package) *Package {
 	p.Types = []*Type{}
 	p.Funcs = []*Func{}
 
+  p.unread = []*ast.Decl{}
+
 	p.read(pkg)
 
+  cur_pkg = p
+
 	return p
+}
+
+func (p *Package) lookupFunc(name string) *Func {
+  for _, f := range p.Funcs {
+    if f.Name == name {
+      return f
+    }
+  }
+  return nil
 }
 
 func (p *Package) String() string {
@@ -85,7 +102,7 @@ func (p *Package) String() string {
 		}
 	}
 
-  str += "types:\n"
+  /* str += "types:\n"
   for _, t := range p.Types {
     str += "  type " + t.Name + " "
     switch t.Type {
@@ -117,16 +134,20 @@ func (p *Package) String() string {
       str += t.Type
     }
     str += "\n"
-  }
+  } */
 
 	str += "vars:\n"
 	for _, v := range p.Vars {
 		for i, name := range v.Names {
-			str += "  " + name + " " + v.Types[i] + "\n"
+			if i < len(v.Types) {
+				str += "  " + name + " " + v.Types[i] + "\n"
+			} else {
+				str += "  " + name + " INCOMPLETE\n"
+			}
 		}
 	}
 
-	str += "funcs:\n"
+	/* str += "funcs:\n"
 	for _, f := range p.Funcs {
 		str += "  func "
 		if f.Receiver != "" { // Maybe these should just be added to the receiver
@@ -160,6 +181,7 @@ func (p *Package) String() string {
 		}
 		str += "\n"
 	}
+  */
 
 	return str
 }
@@ -222,10 +244,10 @@ func readValue(val *ast.ValueSpec) *Value {
 	for i, id := range val.Names {
 		names[i] = id.Name
 	}
-	fmt.Println(names)
+
 	var types []string
 	if val.Type != nil {
-		typ := readExpr(val.Type)[0]
+		typ := readTypeExpr(val.Type)[0]
 		types = make([]string, len(val.Names))
 		for i := 0; i < len(types); i++ {
 			types[i] = typ
@@ -233,9 +255,10 @@ func readValue(val *ast.ValueSpec) *Value {
 	} else {
 		types = make([]string, 0, len(val.Names))
 		for _, v := range val.Values {
-			types = append(types, readExpr(v)...)
+			types = append(types, readTypeExpr(v)...)
 		}
 	}
+
 	v := &Value{
 		Names: names,
 		Types: types,
@@ -273,8 +296,14 @@ func readFunc(d *ast.FuncDecl) *Func {
 	return f
 }
 
+// readType reads a TypeSpec to create a Type.
+// A TypeSpec can declare a new struct or interface or reference some
+// pre-existing basic type or previously imported/declared type.
+//
+// Struct declarations (StructType) will populated FieldNames/Types.
+//
+// Interface declarations (InterfaceType) will populated MethodNames/Types.
 func readType(typ *ast.TypeSpec) *Type {
-	vprint(typ, "readType: ")
 
 	var typeType string
 	var fieldNames, fieldTypes []string
@@ -293,7 +322,7 @@ func readType(typ *ast.TypeSpec) *Type {
 		methodNames, methodTypes = readFields(intr.Methods)
 
 	default:
-		typeType = readExpr(typ.Type)[0]
+		typeType = readTypeExpr(typ.Type)[0]
 	}
 
 	t := &Type{
@@ -324,7 +353,7 @@ func readFields(fl *ast.FieldList) (names []string, types []string) {
 	names = []string{}
 	types = []string{}
 	for _, f := range fl.List {
-		typ := readExpr(f.Type)[0]
+		typ := readTypeExpr(f.Type)[0]
 		if f.Names != nil {
 			for _, n := range f.Names {
 				names = append(names, n.Name)
@@ -337,17 +366,17 @@ func readFields(fl *ast.FieldList) (names []string, types []string) {
 	return
 }
 
-// readExpr reads an expression and returns the associated types.
+// readTypeExpr reads an expression and returns the associated types.
 //
 // A lot of cases remain to be implemented.
 // Particularly any Expr that reference another declaration.
 //
-func readExpr(e ast.Expr) []string {
-	// TODO, lookup for more difficult value expressions
-	vprint(e, "readExpr: ")
+func readTypeExpr(e ast.Expr) []string {
+	//vprint(e, "readTypeExpr: ")
 	types := []string{}
 
 	switch e.(type) {
+
 	case *ast.Ident:
 		id := e.(*ast.Ident)
 		if id.Obj == nil {
@@ -362,7 +391,7 @@ func readExpr(e ast.Expr) []string {
 
 	case *ast.MapType:
 		typ := e.(*ast.MapType)
-		s := "map[" + readExpr(typ.Key)[0] + "]" + readExpr(typ.Value)[0]
+		s := "map[" + readTypeExpr(typ.Key)[0] + "]" + readTypeExpr(typ.Value)[0]
 		types = append(types, s)
 
 	case *ast.FuncType:
@@ -383,32 +412,71 @@ func readExpr(e ast.Expr) []string {
 
 	case *ast.CompositeLit:
 		lit := e.(*ast.CompositeLit)
-		types = readExpr(lit.Type)
+		types = readTypeExpr(lit.Type)
 
 	case *ast.StarExpr:
-		types = readExpr(e.(*ast.StarExpr).X)
+		types = readTypeExpr(e.(*ast.StarExpr).X)
 
 	case *ast.SelectorExpr:
 		sel := e.(*ast.SelectorExpr)
-		s := readExpr(sel.X)[0] + "." + readExpr(sel.Sel)[0]
+		s := readTypeExpr(sel.X)[0] + "." + readTypeExpr(sel.Sel)[0]
 		types = append(types, s)
 
-	case *ast.CallExpr: // Function call, look at functions out params
-		// Need to read decl
-		//types = s.readExpr(cexpr.Fun)
-
-	case *ast.IndexExpr: // Index expression of map, slice, array etc
-		// Need to read decl, we might want to create either another function
-		// for handling "uses" of variables or have some flag indicating another
-		// mode. Obviously a case like:
-		//
-		//   var m map[int]int
-		//   var a = m[0]
-		//
-		// should have different types for 'a' and 'm' despite both using the
-		// the declaration of m.
-	}
+  default:
+    // Probably not a simple type expression, read it as a use expression.
+    types = readUseExpr(e)
+  }
 	return types
+}
+
+func readUseExpr(e ast.Expr) []string {
+  vprint(e, "readUseExpr: ")
+  types := []string{}
+
+  switch e.(type) {
+
+  case *ast.IndexExpr:
+    types = readUseExpr(e.(*ast.IndexExpr).X)
+
+  case *ast.MapType:
+    // This is the case where the parent was an IndexExpr. In this case,
+    // dependent on how many variables are assigned the value we would
+    // want to add a "bool" type to the list of types.
+    // Example:
+    //
+		//   var m map[int]int
+		//   var a     = m[0]
+    //   var b, ok = m[0]
+    //   var c, d  = m[0], m[0]
+    //
+    // For 'a' we simply want to return the found type.
+    // For 'b', 'ok' we want to return the found type and a bool.
+    // The last case shows why we can't always just add a bool to the
+    // types as this would be an erroneous type for 'd'.
+		typ := e.(*ast.MapType)
+		types = readTypeExpr(typ.Value)
+
+  case *ast.CallExpr:
+
+    call := e.(*ast.CallExpr)
+
+    switch call.Fun.(type) {
+    case *ast.Ident:
+      // Do lookup on name
+      id := call.Fun.(*ast.Ident)
+      types = cur_pkg.lookupFunc(id.Name).ReturnTypes
+
+    case *ast.FuncLit:
+      fun := call.Fun.(*ast.FuncLit)
+      types = readUseExpr(fun.Type)
+    }
+
+	case *ast.FuncType:
+		typ := e.(*ast.FuncType)
+		_, rvs := readFields(typ.Results)
+    types = append(types, rvs...)
+  }
+  return types
 }
 
 // readObj reads an Object which seem to be mostly used when variables

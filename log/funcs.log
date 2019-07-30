@@ -1,88 +1,60 @@
 > func Animate
-    Doc:  &ast.CommentGroup{List:[]*ast.Comment{(*ast.Comment)(0xc0001b40a0)}}
-    Recv: &ast.FieldList{Opening:1969, List:[]*ast.Field{(*ast.Field)(0xc000062fc0)}, Closing:1981}
-    Type: &ast.FuncType{Func:1964, Params:(*ast.FieldList)(0xc0001828d0), Results:(*ast.FieldList)(nil)}
+    Doc:  &ast.CommentGroup{List:[]*ast.Comment{(*ast.Comment)(0xc00020c260)}}
+    Recv: &ast.FieldList{Opening:2011, List:[]*ast.Field{(*ast.Field)(0xc0000b5000)}, Closing:2023}
+    Type: &ast.FuncType{Func:2006, Params:(*ast.FieldList)(0xc000198f60), Results:(*ast.FieldList)(nil)}
 > func SetColor
-    Doc:  &ast.CommentGroup{List:[]*ast.Comment{(*ast.Comment)(0xc0001b41e0)}}
-    Recv: &ast.FieldList{Opening:2098, List:[]*ast.Field{(*ast.Field)(0xc000063040)}, Closing:2110}
-    Type: &ast.FuncType{Func:2093, Params:(*ast.FieldList)(0xc0001829f0), Results:(*ast.FieldList)(nil)}
+    Doc:  &ast.CommentGroup{List:[]*ast.Comment{(*ast.Comment)(0xc00020c3a0)}}
+    Recv: &ast.FieldList{Opening:2140, List:[]*ast.Field{(*ast.Field)(0xc0000b5080)}, Closing:2152}
+    Type: &ast.FuncType{Func:2135, Params:(*ast.FieldList)(0xc000199080), Results:(*ast.FieldList)(nil)}
 > func animate
     Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:2158, List:[]*ast.Field{(*ast.Field)(0xc000063100)}, Closing:2170}
-    Type: &ast.FuncType{Func:2153, Params:(*ast.FieldList)(0xc000182b10), Results:(*ast.FieldList)(nil)}
+    Recv: &ast.FieldList{Opening:2200, List:[]*ast.Field{(*ast.Field)(0xc0000b5140)}, Closing:2212}
+    Type: &ast.FuncType{Func:2195, Params:(*ast.FieldList)(0xc0001991a0), Results:(*ast.FieldList)(nil)}
 > func print
     Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:2516, List:[]*ast.Field{(*ast.Field)(0xc000063580)}, Closing:2528}
-    Type: &ast.FuncType{Func:2511, Params:(*ast.FieldList)(0xc000182ff0), Results:(*ast.FieldList)(nil)}
+    Recv: &ast.FieldList{Opening:2558, List:[]*ast.Field{(*ast.Field)(0xc0000b55c0)}, Closing:2570}
+    Type: &ast.FuncType{Func:2553, Params:(*ast.FieldList)(0xc000199680), Results:(*ast.FieldList)(nil)}
 > func wait
     Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:2613, List:[]*ast.Field{(*ast.Field)(0xc000063700)}, Closing:2625}
-    Type: &ast.FuncType{Func:2608, Params:(*ast.FieldList)(0xc0001831d0), Results:(*ast.FieldList)(nil)}
+    Recv: &ast.FieldList{Opening:2655, List:[]*ast.Field{(*ast.Field)(0xc0000b5740)}, Closing:2667}
+    Type: &ast.FuncType{Func:2650, Params:(*ast.FieldList)(0xc000199860), Results:(*ast.FieldList)(nil)}
 > func Stop
-    Doc:  &ast.CommentGroup{List:[]*ast.Comment{(*ast.Comment)(0xc0001b5360)}}
-    Recv: &ast.FieldList{Opening:2763, List:[]*ast.Field{(*ast.Field)(0xc0000638c0)}, Closing:2775}
-    Type: &ast.FuncType{Func:2758, Params:(*ast.FieldList)(0xc0001833e0), Results:(*ast.FieldList)(nil)}
+    Doc:  &ast.CommentGroup{List:[]*ast.Comment{(*ast.Comment)(0xc00020d520)}}
+    Recv: &ast.FieldList{Opening:2805, List:[]*ast.Field{(*ast.Field)(0xc0000b5900)}, Closing:2817}
+    Type: &ast.FuncType{Func:2800, Params:(*ast.FieldList)(0xc000199a70), Results:(*ast.FieldList)(nil)}
 > func init
     Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:3072, List:[]*ast.Field{(*ast.Field)(0xc000063dc0)}, Closing:3081}
-    Type: &ast.FuncType{Func:3067, Params:(*ast.FieldList)(0xc000183ad0), Results:(*ast.FieldList)(0xc000183b00)}
+    Recv: &ast.FieldList{Opening:3114, List:[]*ast.Field{(*ast.Field)(0xc0000b5e00)}, Closing:3123}
+    Type: &ast.FuncType{Func:3109, Params:(*ast.FieldList)(0xc000218180), Results:(*ast.FieldList)(0xc0002181b0)}
 > func String
     Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:3424, List:[]*ast.Field{(*ast.Field)(0xc0001c2300)}, Closing:3433}
-    Type: &ast.FuncType{Func:3419, Params:(*ast.FieldList)(0xc000183e90), Results:(*ast.FieldList)(0xc000183ec0)}
+    Recv: &ast.FieldList{Opening:3466, List:[]*ast.Field{(*ast.Field)(0xc00021c340)}, Closing:3475}
+    Type: &ast.FuncType{Func:3461, Params:(*ast.FieldList)(0xc000218540), Results:(*ast.FieldList)(0xc000218570)}
 > func Apply
     Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:3576, List:[]*ast.Field{(*ast.Field)(0xc0001c2500)}, Closing:3585}
-    Type: &ast.FuncType{Func:3571, Params:(*ast.FieldList)(0xc0001c6000), Results:(*ast.FieldList)(0xc0001c6030)}
+    Recv: &ast.FieldList{Opening:3618, List:[]*ast.Field{(*ast.Field)(0xc00021c540)}, Closing:3627}
+    Type: &ast.FuncType{Func:3613, Params:(*ast.FieldList)(0xc000218690), Results:(*ast.FieldList)(0xc0002186c0)}
 > func color
     Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:3643, List:[]*ast.Field{(*ast.Field)(0xc0001c2600)}, Closing:3652}
-    Type: &ast.FuncType{Func:3638, Params:(*ast.FieldList)(0xc0001c6150), Results:(*ast.FieldList)(0xc0001c6180)}
+    Recv: &ast.FieldList{Opening:3685, List:[]*ast.Field{(*ast.Field)(0xc00021c640)}, Closing:3694}
+    Type: &ast.FuncType{Func:3680, Params:(*ast.FieldList)(0xc0002187e0), Results:(*ast.FieldList)(0xc000218810)}
 > func do
     Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:4194, List:[]*ast.Field{(*ast.Field)(0xc0001c2e80)}, Closing:4203}
-    Type: &ast.FuncType{Func:4189, Params:(*ast.FieldList)(0xc0001c6990), Results:(*ast.FieldList)(0xc0001c69c0)}
+    Recv: &ast.FieldList{Opening:4236, List:[]*ast.Field{(*ast.Field)(0xc00021cec0)}, Closing:4245}
+    Type: &ast.FuncType{Func:4231, Params:(*ast.FieldList)(0xc000219020), Results:(*ast.FieldList)(0xc000219050)}
 > func ok
     Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:4242, List:[]*ast.Field{(*ast.Field)(0xc0001c2f40)}, Closing:4248}
-    Type: &ast.FuncType{Func:4237, Params:(*ast.FieldList)(0xc0001c6ae0), Results:(*ast.FieldList)(nil)}
+    Recv: &ast.FieldList{Opening:4284, List:[]*ast.Field{(*ast.Field)(0xc00021cf80)}, Closing:4290}
+    Type: &ast.FuncType{Func:4279, Params:(*ast.FieldList)(0xc000219170), Results:(*ast.FieldList)(nil)}
 > func a
     Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:4273, List:[]*ast.Field{(*ast.Field)(0xc0001c2fc0)}, Closing:4280}
-    Type: &ast.FuncType{Func:4268, Params:(*ast.FieldList)(0xc0001c6c00), Results:(*ast.FieldList)(0xc0001c6c30)}
+    Recv: &ast.FieldList{Opening:4315, List:[]*ast.Field{(*ast.Field)(0xc00021d000)}, Closing:4322}
+    Type: &ast.FuncType{Func:4310, Params:(*ast.FieldList)(0xc000219290), Results:(*ast.FieldList)(0xc0002192c0)}
 > func b
     Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:4315, List:[]*ast.Field{(*ast.Field)(0xc0001c3040)}, Closing:4322}
-    Type: &ast.FuncType{Func:4310, Params:(*ast.FieldList)(0xc0001c6d50), Results:(*ast.FieldList)(0xc0001c6d80)}
+    Recv: &ast.FieldList{Opening:4357, List:[]*ast.Field{(*ast.Field)(0xc00021d080)}, Closing:4364}
+    Type: &ast.FuncType{Func:4352, Params:(*ast.FieldList)(0xc0002193e0), Results:(*ast.FieldList)(0xc000219410)}
 > func c
     Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:4363, List:[]*ast.Field{(*ast.Field)(0xc0001c3140)}, Closing:4370}
-    Type: &ast.FuncType{Func:4358, Params:(*ast.FieldList)(0xc0001c6ea0), Results:(*ast.FieldList)(0xc0001c6f60)}
-> func Put
-    Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:8160, List:[]*ast.Field{(*ast.Field)(0xc0002228c0)}, Closing:8167}
-    Type: &ast.FuncType{Func:8155, Params:(*ast.FieldList)(0xc000213d10), Results:(*ast.FieldList)(0xc000213d70)}
-> func Get
-    Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:8352, List:[]*ast.Field{(*ast.Field)(0xc000222bc0)}, Closing:8359}
-    Type: &ast.FuncType{Func:8347, Params:(*ast.FieldList)(0xc00022a030), Results:(*ast.FieldList)(0xc00022a090)}
-> func Keys
-    Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:8454, List:[]*ast.Field{(*ast.Field)(0xc000222d40)}, Closing:8461}
-    Type: &ast.FuncType{Func:8449, Params:(*ast.FieldList)(0xc00022a270), Results:(*ast.FieldList)(0xc00022a2d0)}
-> func String
-    Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:8574, List:[]*ast.Field{(*ast.Field)(0xc000222f00)}, Closing:8581}
-    Type: &ast.FuncType{Func:8569, Params:(*ast.FieldList)(0xc00022a510), Results:(*ast.FieldList)(0xc00022a540)}
-> func String
-    Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:13236, List:[]*ast.Field{(*ast.Field)(0xc00025e680)}, Closing:13247}
-    Type: &ast.FuncType{Func:13231, Params:(*ast.FieldList)(0xc00024b0b0), Results:(*ast.FieldList)(0xc00024b0e0)}
-> func read
-    Doc:  (*ast.CommentGroup)(nil)
-    Recv: &ast.FieldList{Opening:15164, List:[]*ast.Field{(*ast.Field)(0xc00025fa40)}, Closing:15175}
-    Type: &ast.FuncType{Func:15159, Params:(*ast.FieldList)(0xc000262960), Results:(*ast.FieldList)(nil)}
-> func readDecl
-    Doc:  &ast.CommentGroup{List:[]*ast.Comment{(*ast.Comment)(0xc000264f60), (*ast.Comment)(0xc000264f80)}}
-    Recv: &ast.FieldList{Opening:15451, List:[]*ast.Field{(*ast.Field)(0xc00025fb80)}, Closing:15462}
-    Type: &ast.FuncType{Func:15446, Params:(*ast.FieldList)(0xc000262ba0), Results:(*ast.FieldList)(nil)}
+    Recv: &ast.FieldList{Opening:4405, List:[]*ast.Field{(*ast.Field)(0xc00021d180)}, Closing:4412}
+    Type: &ast.FuncType{Func:4400, Params:(*ast.FieldList)(0xc000219530), Results:(*ast.FieldList)(0xc0002195f0)}

@@ -9,6 +9,7 @@
                 import
                       "./gdoc"
                       "./spec"
+                      "./decls"
                       "fmt"
                       "os"
                 func GdocEx
@@ -45,6 +46,30 @@ color:
               func dec
               func check
 decls:
+      types.go
+              type AType
+              type AIntr
+              type
+                  Impl
+                  Foo
+              type BType
+              type EmptyI
+              type EmptyS
+      vars.go
+             var i
+             var U V W
+             var k
+             var x y
+             var
+                j
+                u                v                s
+             var re im
+             var entries
+             var m1 m2 m3
+             var _ found
+             var _b _c _d
+             var fa fb fc
+             var edge
       consts.go
                const a
                const
@@ -64,104 +89,3 @@ decls:
               func a
               func b
               func c
-      types.go
-              type AType
-              type AIntr
-              type
-                  Impl
-                  Foo
-              type BType
-              type EmptyI
-              type EmptyS
-      vars.go
-             var i
-             var U V W
-             var k
-             var x y
-             var
-                j
-                u                v                s
-             var entries
-             var m1 m2 m3
-gdoc:
-     parser.go
-              import
-                    "bytes"
-                    "encoding/json"
-                    "fmt"
-                    "os"
-                    "os/exec"
-                    "strings"
-                    "../linked"
-              var types
-              var defs
-              func init
-              func Generate
-              func addDef
-              func addFunc
-              func parse
-              func parseLine
-              func run
-              func isFatal
-linked:
-       map.go
-             import "fmt"
-             type Map
-             func NewMap
-             func Put
-             func Get
-             func Keys
-             func String
-spec:
-     adoc.go
-            import
-                  "bytes"
-                  "fmt"
-                  "go/ast"
-                  "go/parser"
-                  "go/token"
-                  "os"
-                  "path/filepath"
-                  "strings"
-            var fset
-            var dirRoot
-            var pad
-            var buf
-            var out1
-            var out2
-            func filter
-            func walker
-            func interpret
-            func reprGenDecl
-            func reprFuncDecl
-            func reprSpec
-            func Explore
-            func init
-            func check
-     spec.go
-            import
-                  "fmt"
-                  "go/ast"
-                  "go/token"
-                  "strings"
-            type Package
-            type Value
-            type Type
-            type Func
-            func New
-            func String
-            func read
-            func readDecl
-            func readValue
-            func readFunc
-            func readType
-            func readFields
-            func readExpr
-            func readObj
-     utils.go
-             import
-                   "fmt"
-                   "reflect"
-                   "sort"
-             func sillySort
-             func vprint
