@@ -159,7 +159,7 @@ func (p *Package) String() string {
 	for _, v := range p.Vars {
 		for i, name := range v.Names {
 			if i < len(v.Types) {
-				str += "  " + name + " " + v.Types[i] + "\n"
+				str += "  " + name + " " + resolveType(v.Types[i]) + "\n"
 			} else {
 				str += "  " + name + " INCOMPLETE\n"
 			}
@@ -266,6 +266,25 @@ func readValue(val *ast.ValueSpec) *Value {
 
   fmt.Println(names)
 
+  // We should probably handle the two cases here differently.
+  // If val.Type is set it means we have a value specification of the form:
+  //
+  //   1. var a, b, ... int
+  //
+  // which is quite easy to read as all variables have the same type.
+  // The only things we have to look out for are any specified values in
+  // case the specification is for a const.
+  //
+  // The other case however is when the type is implicit and val.Type is nil.
+  // Could be for example one of:
+  //
+  //   2. var a, ok = m[0]
+  //      var b, c  = foo.Foo, foo.Foo.foo()
+  //
+  // which are much trickier to determine.
+  // We should probably use the fact that the type in the first case is limited
+  // to just a few types of expressions.
+
 	var types []string
 	if val.Type != nil {
 		typ := readTypeExpr(val.Type)[0]
@@ -286,6 +305,32 @@ func readValue(val *ast.ValueSpec) *Value {
 		Decl:  val,
 	}
 	return v
+}
+
+// resloveType takes a string representing a type such as:
+//
+//   foo.Foo.foo()
+//
+// and tries to resolve what type such a selection would return.
+func resolveType(typstr string) string {
+  parts := strings.Split(typstr, ".")
+  if len(parts) > 1 {
+    typ := cur_pkg.lookupType(parts[0])
+    for _, member := range parts[1:] {
+typeLoop:
+      for i, name := range typ.FieldNames {
+        if name == member {
+          ftype := typ.FieldTypes[i]
+          typ = cur_pkg.lookupType(ftype)
+          if typ == nil {
+            return ftype
+          }
+          break typeLoop
+        }
+      }
+    }
+  }
+  return typstr
 }
 
 // readFunc reads a FuncDecl and creates a Func.
