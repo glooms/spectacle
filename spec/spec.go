@@ -14,8 +14,6 @@ type Package struct {
 	Vars   []*Value
 	Types  []*Type
 	Funcs  []*Func
-
-  unread []*ast.Decl
 }
 
 type Value struct {
@@ -26,14 +24,14 @@ type Value struct {
 }
 
 type Type struct {
-	Name       string
-	Decl       *ast.TypeSpec
-	Type       string
-	Comment    string
-	FieldNames []string // For struct
-	FieldTypes []string // For struct
-	MethodNames     []string // For interface
-	MethodTypes    []string // For interface
+	Name        string
+	Decl        *ast.TypeSpec
+	Type        string
+	Comment     string
+	FieldNames  []string // For struct
+	FieldTypes  []string // For struct
+	MethodNames []string // For interface
+	MethodTypes []string // For interface
 }
 
 type Func struct {
@@ -58,19 +56,40 @@ func New(pkg *ast.Package) *Package {
 	p.Types = []*Type{}
 	p.Funcs = []*Func{}
 
-  p.unread = []*ast.Decl{}
-
-	p.read(pkg)
-
   cur_pkg = p
+
+  p.read(pkg)
 
 	return p
 }
 
 func (p *Package) lookupFunc(name string) *Func {
-  for _, f := range p.Funcs {
-    if f.Name == name {
-      return f
+	for _, f := range p.Funcs {
+		if f.Name == name {
+			return f
+		}
+	}
+	return nil
+}
+
+func (p *Package) lookupType(name string) *Type {
+  for _, t := range p.Types {
+    if t.Name == name {
+      return t
+    }
+  }
+  return nil
+}
+
+func (p *Package) lookupValue(decl *ast.ValueSpec) *Value {
+  for _, v := range p.Vars {
+    if v.Decl == decl {
+      return v
+    }
+  }
+  for _, c := range p.Consts {
+    if c.Decl == decl {
+      return c
     }
   }
   return nil
@@ -102,39 +121,39 @@ func (p *Package) String() string {
 		}
 	}
 
-  /* str += "types:\n"
-  for _, t := range p.Types {
-    str += "  type " + t.Name + " "
-    switch t.Type {
-    case "struct":
+	/* str += "types:\n"
+	for _, t := range p.Types {
+	  str += "  type " + t.Name + " "
+	  switch t.Type {
+	  case "struct":
 
-      str += t.Type + " {"
-      i := 0
-      for ; i < len(t.FieldNames); i++ {
-        str += "\n    " + t.FieldNames[i] + " " + t.FieldTypes[i]
-      }
-      if i > 0 {
-        str += "\n  "
-      }
-      str += "}"
+	    str += t.Type + " {"
+	    i := 0
+	    for ; i < len(t.FieldNames); i++ {
+	      str += "\n    " + t.FieldNames[i] + " " + t.FieldTypes[i]
+	    }
+	    if i > 0 {
+	      str += "\n  "
+	    }
+	    str += "}"
 
-    case "interface":
+	  case "interface":
 
-      str += t.Type + " {"
-      i := 0
-      for ; i < len(t.MethodNames); i++ {
-        str += "\n    " + t.MethodNames[i] + " " + t.MethodTypes[i]
-      }
-      if i > 0 {
-        str += "\n  "
-      }
-      str += "}"
+	    str += t.Type + " {"
+	    i := 0
+	    for ; i < len(t.MethodNames); i++ {
+	      str += "\n    " + t.MethodNames[i] + " " + t.MethodTypes[i]
+	    }
+	    if i > 0 {
+	      str += "\n  "
+	    }
+	    str += "}"
 
-    default:
-      str += t.Type
-    }
-    str += "\n"
-  } */
+	  default:
+	    str += t.Type
+	  }
+	  str += "\n"
+	} */
 
 	str += "vars:\n"
 	for _, v := range p.Vars {
@@ -181,7 +200,7 @@ func (p *Package) String() string {
 		}
 		str += "\n"
 	}
-  */
+	*/
 
 	return str
 }
@@ -245,6 +264,8 @@ func readValue(val *ast.ValueSpec) *Value {
 		names[i] = id.Name
 	}
 
+  fmt.Println(names)
+
 	var types []string
 	if val.Type != nil {
 		typ := readTypeExpr(val.Type)[0]
@@ -274,6 +295,8 @@ func readValue(val *ast.ValueSpec) *Value {
 // We might want to add methods to their receivers, but that can be done later too.
 func readFunc(d *ast.FuncDecl) *Func {
 	name := d.Name.Name
+
+  fmt.Println(d.Name.Name)
 
 	parNames, parTypes := readFields(d.Type.Params)
 	retNames, retTypes := readFields(d.Type.Results)
@@ -307,7 +330,9 @@ func readType(typ *ast.TypeSpec) *Type {
 
 	var typeType string
 	var fieldNames, fieldTypes []string
-  var methodNames, methodTypes []string
+	var methodNames, methodTypes []string
+
+  fmt.Println(typ.Name.Name)
 
 	switch typ.Type.(type) { // What type is typ's Type's type?
 
@@ -326,13 +351,13 @@ func readType(typ *ast.TypeSpec) *Type {
 	}
 
 	t := &Type{
-		Name:       typ.Name.Name,
-		Decl:       typ,
-		Type:       typeType,
-		FieldNames: fieldNames,
-		FieldTypes: fieldTypes,
-    MethodNames: methodNames,
-    MethodTypes: methodTypes,
+		Name:        typ.Name.Name,
+		Decl:        typ,
+		Type:        typeType,
+		FieldNames:  fieldNames,
+		FieldTypes:  fieldTypes,
+		MethodNames: methodNames,
+		MethodTypes: methodTypes,
 	}
 	return t
 }
@@ -368,31 +393,29 @@ func readFields(fl *ast.FieldList) (names []string, types []string) {
 
 // readTypeExpr reads an expression and returns the associated types.
 //
-// A lot of cases remain to be implemented.
-// Particularly any Expr that reference another declaration.
+// Value lookup remaings. Mostly relevant for constants but could also
+// be nice for variables.
 //
 func readTypeExpr(e ast.Expr) []string {
-	//vprint(e, "readTypeExpr: ")
-	types := []string{}
+	vprint(e, "readTypeExpr: ")
 
 	switch e.(type) {
 
 	case *ast.Ident:
 		id := e.(*ast.Ident)
 		if id.Obj == nil {
-			types = append(types, id.Name)
-		} else {
-			types = append(types, readObj(id.Obj)...)
+			return []string{id.Name}
 		}
+		return readUseExpr(id)
 
 	case *ast.BasicLit:
 		lit := e.(*ast.BasicLit)
-		types = append(types, strings.ToLower(lit.Kind.String()))
+		return []string{strings.ToLower(lit.Kind.String())}
 
 	case *ast.MapType:
 		typ := e.(*ast.MapType)
 		s := "map[" + readTypeExpr(typ.Key)[0] + "]" + readTypeExpr(typ.Value)[0]
-		types = append(types, s)
+		return []string{s}
 
 	case *ast.FuncType:
 		// This should probably be refactored to a function
@@ -408,75 +431,134 @@ func readTypeExpr(e ast.Expr) []string {
 		if paren {
 			s += ")"
 		}
-		types = append(types, s)
+		return []string{s}
 
 	case *ast.CompositeLit:
 		lit := e.(*ast.CompositeLit)
-		types = readTypeExpr(lit.Type)
+		return readTypeExpr(lit.Type)
 
 	case *ast.StarExpr:
-		types = readTypeExpr(e.(*ast.StarExpr).X)
+		return readTypeExpr(e.(*ast.StarExpr).X)
 
 	case *ast.SelectorExpr:
+    // This case represents expressions of the form:
+    //
+    //   1. fmt.Print()    call of exposed function
+    //   2. fmt.SomeConst  access of exposed variable/constant
+    //   3. A.a            access of field in struct
+    //   4. A.b()          call of method in struct/interface
+    //
+    // As you can see, they can be quite different.
 		sel := e.(*ast.SelectorExpr)
-		s := readTypeExpr(sel.X)[0] + "." + readTypeExpr(sel.Sel)[0]
-		types = append(types, s)
+    s := readTypeExpr(sel.X)[0] + "." + readTypeExpr(sel.Sel)[0]
+		return []string{s}
 
-  default:
-    // Probably not a simple type expression, read it as a use expression.
-    types = readUseExpr(e)
-  }
-	return types
+	default:
+		// Probably not a simple type expression, read it as an use expression.
+		return readUseExpr(e)
+	}
 }
 
 func readUseExpr(e ast.Expr) []string {
-  vprint(e, "readUseExpr: ")
-  types := []string{}
+	vprint(e, "readUseExpr: ")
 
-  switch e.(type) {
+	switch e.(type) {
 
-  case *ast.IndexExpr:
-    types = readUseExpr(e.(*ast.IndexExpr).X)
+  case *ast.Ident:
+    id := e.(*ast.Ident)
+    o := id.Obj
+    vprint(o, "use: ")
+    if o == nil {
+      return nil
+    }
 
-  case *ast.MapType:
-    // This is the case where the parent was an IndexExpr. In this case,
-    // dependent on how many variables are assigned the value we would
-    // want to add a "bool" type to the list of types.
-    // Example:
-    //
+    switch o.Kind {
+
+    case ast.Typ:
+      if t, ok := o.Decl.(*ast.TypeSpec); ok {
+        return []string{t.Name.Name}
+      }
+
+    case ast.Con:
+      fallthrough
+
+    case ast.Var:
+
+      val := o.Decl.(*ast.ValueSpec)
+      value := cur_pkg.lookupValue(val)
+      for i, n := range value.Names {
+        if n == o.Name {
+          return []string{value.Types[i]}
+        }
+      }
+
+    case ast.Fun:
+      if _, ok := o.Decl.(*ast.FuncDecl); ok {
+        return nil
+      }
+    default:
+      vprint(o, "unhandled: ")
+
+    }
+
+	case *ast.IndexExpr:
+		return readUseExpr(e.(*ast.IndexExpr).X)
+
+	case *ast.MapType:
+		// This is the case where the parent was an IndexExpr. In this case,
+		// dependent on how many variables are assigned the value we would
+		// want to add a "bool" type to the list of types.
+		// Example:
+		//
 		//   var m map[int]int
 		//   var a     = m[0]
-    //   var b, ok = m[0]
-    //   var c, d  = m[0], m[0]
-    //
-    // For 'a' we simply want to return the found type.
-    // For 'b', 'ok' we want to return the found type and a bool.
-    // The last case shows why we can't always just add a bool to the
-    // types as this would be an erroneous type for 'd'.
+		//   var b, ok = m[0]
+		//   var c, d  = m[0], m[0]
+		//
+		// For 'a' we simply want to return the found type.
+		// For 'b', 'ok' we want to return the found type and a bool.
+		// The last case shows why we can't always just add a bool to the
+		// types as this would be an erroneous type for 'd'.
 		typ := e.(*ast.MapType)
-		types = readTypeExpr(typ.Value)
+		return readTypeExpr(typ.Value)
 
-  case *ast.CallExpr:
+	case *ast.CallExpr:
 
-    call := e.(*ast.CallExpr)
+		call := e.(*ast.CallExpr)
 
-    switch call.Fun.(type) {
-    case *ast.Ident:
-      // Do lookup on name
-      id := call.Fun.(*ast.Ident)
-      types = cur_pkg.lookupFunc(id.Name).ReturnTypes
+		switch call.Fun.(type) {
 
-    case *ast.FuncLit:
-      fun := call.Fun.(*ast.FuncLit)
-      types = readUseExpr(fun.Type)
-    }
+		case *ast.Ident:
+			// Do lookup on name
+			id := call.Fun.(*ast.Ident)
+      f := cur_pkg.lookupFunc(id.Name)
+      if f != nil {
+        return f.ReturnTypes
+      }
+      return nil
+
+    default:
+      return readUseExpr(call.Fun)
+		}
+
+ case *ast.SelectorExpr:
+   // Getting in to annoying territory.
+   sel := e.(*ast.SelectorExpr)
+   _ = readUseExpr(sel.X)
+   _ = readUseExpr(sel.Sel)
+   return nil
+
+
+  case *ast.FuncLit:
+    lit := e.(*ast.FuncLit)
+    return readUseExpr(lit.Type)
 
 	case *ast.FuncType:
 		typ := e.(*ast.FuncType)
-		_, rvs := readFields(typ.Results)
-    types = append(types, rvs...)
-  }
-  return types
+    _, types := readFields(typ.Results)
+		return types
+	}
+	return nil
 }
 
 // readObj reads an Object which seem to be mostly used when variables

@@ -29,6 +29,8 @@ func sillySort(m reflect.Value) []string {
 }
 
 func vprint(i interface{}, prefix ...interface{}) {
-  fmt.Print(prefix...)
-  fmt.Printf("%#v\n", i)
+	fmt.Printf("\x1b[38;2;%d;%d;%dm", 0xA0, 0xA0, 0x10)
+	fmt.Print(prefix...)
+  fmt.Print("\x1b[0m")
+	fmt.Printf("%#v\n", i)
 }

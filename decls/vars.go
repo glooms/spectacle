@@ -1,5 +1,7 @@
 package decls
 
+import "fmt"
+
 var i int
 var U, V, W float64
 var k = 0
@@ -20,5 +22,10 @@ var _b, _c, _d = entries["B"], entries["C"], entries["D"]
 var fa, fb, fc func(bool) int
 
 var edge = func(b bool) bool {
-  return b
+	return b
 }(true)
+
+var str = fmt.Sprint("Hello!")
+
+var foo = Foo{}
+var sel = foo.A.a

@@ -2,9 +2,9 @@
 package main
 
 import (
+	_ "./decls" // See if it breakes or not
 	"./gdoc"
 	"./spec"
-  _ "./decls" // See if it breakes or not
 	"fmt"
 	"os"
 )
