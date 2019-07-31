@@ -305,14 +305,20 @@ func readValueSpec(val *ast.ValueSpec) *Value {
 		}
 	}
   if val.Values != nil {
+    multiReturn := false
     if !hasType {
 	    types = make([]string, 0, len(val.Names))
+      multiReturn = len(val.Values) < len(val.Names)
     }
     values = make([]string, 0, len(val.Names))
 		for _, v := range val.Values {
       rtypes, rvalues := readValueExpr(v)
       if !hasType && rtypes != nil {
-			  types = append(types, rtypes...)
+        if multiReturn {
+          types = append(types, rtypes...)
+        } else {
+          types = append(types, rtypes[0])
+        }
       }
       if rvalues != nil {
         values = append(values, rvalues...)
@@ -479,6 +485,11 @@ func readTypeExpr(e ast.Expr) []string {
 		lit := e.(*ast.BasicLit)
 		return []string{strings.ToLower(lit.Kind.String())}
 
+	case *ast.MapType:
+		typ := e.(*ast.MapType)
+		s := "map[" + readTypeExpr(typ.Key)[0] + "]" + readTypeExpr(typ.Value)[0]
+		return []string{s}
+
 	case *ast.FuncType:
 		// This should probably be refactored to a function
 		typ := e.(*ast.FuncType)
@@ -494,10 +505,6 @@ func readTypeExpr(e ast.Expr) []string {
 			s += ")"
 		}
 		return []string{s}
-
-	case *ast.CompositeLit:
-		lit := e.(*ast.CompositeLit)
-		return readTypeExpr(lit.Type)
 
 	case *ast.StarExpr:
 		return readTypeExpr(e.(*ast.StarExpr).X)
@@ -540,7 +547,20 @@ func readValueExpr(e ast.Expr) (types, values []string) {
 		return
 
 	case *ast.IndexExpr:
-		return readValueExpr(e.(*ast.IndexExpr).X)
+    types, values = readValueExpr(e.(*ast.IndexExpr).X)
+    // 'types' is list containing one elemet which is one of:
+    //    map[T]T, []T, [x]T
+    //
+    types = []string{strings.Split(types[0], "]")[1]}
+    types = append(types, "bool")
+		return
+
+  case *ast.CompositeLit:
+    // Composite literal is a value expression. However, it is a
+    // type expression followed by expressions within braces. We
+    // can therefore lookup the type (but we will ignore the value for now).
+		lit := e.(*ast.CompositeLit)
+		return readTypeExpr(lit.Type), nil
 
 	case *ast.MapType:
 		// This is the case where the parent was an IndexExpr. In this case,
@@ -557,6 +577,7 @@ func readValueExpr(e ast.Expr) (types, values []string) {
 		// For 'b', 'ok' we want to return the found type and a bool.
 		// The last case shows why we can't always just add a bool to the
 		// types as this would be an erroneous type for 'd'.
+    log("called map!")
 		typ := e.(*ast.MapType)
 		return readTypeExpr(typ.Value), nil
 
@@ -585,7 +606,6 @@ func readValueExpr(e ast.Expr) (types, values []string) {
    _, _ = readValueExpr(sel.X)
    _, _ = readValueExpr(sel.Sel)
    return nil, nil
-
 
   case *ast.FuncLit:
     lit := e.(*ast.FuncLit)
