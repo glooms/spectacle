@@ -46,9 +46,9 @@ func Explore(root string) {
 
 func init() {
 	var err error
-  if _, err := os.Stat("./log"); os.IsNotExist(err) {
-    os.Mkdir("./log", 0755)
-  }
+	if _, err := os.Stat("./log"); os.IsNotExist(err) {
+		os.Mkdir("./log", 0755)
+	}
 	out, err = os.Create("./log/debug.log")
 	check(err)
 

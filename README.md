@@ -17,12 +17,14 @@ Using the builtin compiler packages in go, such as `go/` - `ast`, `token` and `p
 
 What remains to be done.
 
-  1. Lookup assigned values for consts (and variables).
-  2. Handle imports (for lookups).
-  3. Filter unexported consts, variables, funcs and types.
-  4. Sort all that is exported in alphabetical order (in groups).
-  5. Group methods with their receivers.
-  6. Specify API specification format (some architect please).
-  7. Choose and implement yaml or json specification generation.
-  
-Lastly, the code is a bit messy and it needs to be cleaner and we need solid test cases. Anything that can be handled by the go compiler should preferably be handled by this packages as well, but that might be a dream.
+  1. ~~Lookup assigned values for consts (and variables).~~
+  2. Handle imports (for lookups) -- seems to be pretty hard.
+  3. Handle concurrency errors, probably by first finding decls and then resolving.
+  4. Filter unexported consts, variables, funcs and types.
+  5. Sort all that is exported in alphabetical order (in groups).
+  6. Group methods with their receivers.
+  7. Specify API specification format (some architect please).
+  8. Choose and implement yaml or json specification generation.
+
+Lastly, the code is a bit messy and it needs to be cleaner and we need solid test cases.
+Anything that can be handled by the go compiler should preferably be handled by this packages as well, but that might be a dream.
