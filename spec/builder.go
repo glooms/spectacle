@@ -12,10 +12,16 @@ import (
 	"strings"
 )
 
+var root string
+
+var logdir = "./log"
+var debugdir = "./debug"
+
 var out *os.File
 var debug_out *os.File
 
 var specs map[string]*Spec
+
 
 // Build goes through all subdirectories of the specifed
 // directory and create a new Spec for each one.
@@ -25,16 +31,25 @@ var specs map[string]*Spec
 // If exported is true, only exported consts, types, etc. is
 // included in each specification.
 //
-func Build(root string) map[string]*Spec {
+func Build(path string) map[string]*Spec {
+  root = path
   specs = map[string]*Spec{}
-	err := filepath.Walk(root, walker)
+	err := filepath.Walk(path, walker)
 	check(err)
+  absLog, _ := filepath.Abs("./log")
+  fmt.Println()
+  fmt.Println("specs: " + absLog)
+  absDebug, _ := filepath.Abs("./debug")
+  fmt.Println("debug: " + absDebug)
   return specs
 }
 
 func init() {
   if _, err := os.Stat("./log"); os.IsNotExist(err) {
     os.Mkdir("./log", 0755)
+  }
+  if _, err := os.Stat("./debug"); os.IsNotExist(err) {
+    os.Mkdir("./debug", 0755)
   }
 }
 
@@ -54,6 +69,10 @@ func walker(path string, fi os.FileInfo, err error) error {
 	}
   // Don't go through hidden files, probably not go code in there.
   if path[0] == '.' {
+    return nil
+  }
+  // Staying away from test directories.
+  if strings.Contains(path, "test") {
     return nil
   }
   files, err := ioutil.ReadDir(path)
@@ -88,9 +107,11 @@ func walker(path string, fi os.FileInfo, err error) error {
 
 func createLogs(name string) {
   var err error
+  name = strings.Replace(name, root, "", 1)[1:]
+  name = strings.ReplaceAll(name, "/", "-")
   out, err = os.Create("./log/" + name + ".log")
   check(err)
-	debug_out, err = os.Create("./log/" + name + ".debug")
+	debug_out, err = os.Create("./debug/" + name + ".log")
   check(err)
 }
 

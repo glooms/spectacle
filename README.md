@@ -5,13 +5,15 @@ An attempt at creating a way to generate API specifications Go packages. As most
 
 ```
   go run main.go
+  go run main.go <go-package-path>
 ```
-It will print all consts, types, variables and functions in the **decls** package which is the test set so far.
-It will also create a debug log under log.
+Running without arguments will be like running it on the directory `.`.
+It will print any packages found and log the specifications to a **log** directory and
+any debug information to a **debug** directory. Normally these directories are created in the
+root of the git repo, i.e. `./log` but it's relative to where you are running it from.
 
-## How it's being build
-
-Using the builtin compiler packages in go, such as `go/` - `ast`, `token` and `parser` I am trying to build something that would be a general solution. I've been using parts of the `go doc` implementation as examples but this project differs in some significant ways. We want to explicitly state the types of all variables for example.
+Added so that the absolute path to the log and debug directories are printed when the program
+is run.
 
 ## Remaining
 
