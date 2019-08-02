@@ -23,11 +23,12 @@ What remains to be done.
   2. ~~Handle imports (for lookups) -- seems to be pretty hard.~~
   3. ~~Handle concurrency errors, probably by first finding decls and then resolving.~~
   4. ~~Filter unexported consts, variables, funcs and types.~~
-  5. ~~Sort all that is exported in alphabetical order (in groups).~~
-  6. Group methods with their receivers.
-  7. Specify API specification format (some architect please).
-  8. Choose and implement yaml or json specification generation.
-  9. Include parsed comments?
+  5. Filter anything in **internal** packages as these cannot be imported by external packages.
+  6. ~~Sort all that is exported in alphabetical order (in groups).~~
+  7. Group methods with their receivers.
+  8. Specify API specification format (some architect please).
+  9. Choose and implement yaml or json specification generation.
+  10. Include parsed comments?
 
 After some research I found the **go/types** package which provides almost all utilities need to create
 a general and robust implementation of a golang specificatios.
