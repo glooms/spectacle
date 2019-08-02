@@ -9,7 +9,6 @@ import (
 	"strings"
 )
 
-var fset *token.FileSet
 var out *os.File
 
 func filter(fi os.FileInfo) bool {
@@ -23,14 +22,16 @@ func walker(path string, fi os.FileInfo, err error) error {
 	if !fi.IsDir() {
 		return nil
 	}
+  fset := token.NewFileSet()
 	pkgs, err := parser.ParseDir(fset, path, filter, parser.ParseComments)
 	if err != nil {
 		return err
 	}
 	for _, pkg := range pkgs {
 		if pkg.Name == "decls" {
-			p := NewPkg(pkg) // This is the important thing
-			fmt.Println(p.String())
+      types, _ := typeCheck(fset, pkg)
+      p := NewPkg(pkg, types)
+      fmt.Println(p.String())
 		}
 	}
 	return nil
@@ -39,6 +40,7 @@ func walker(path string, fi os.FileInfo, err error) error {
 // Explore prints all the .go files (excluding tests...ish) that have the directory path root
 // as a parent directory.
 func Explore(root string) {
+  test()
 	defer out.Close()
 	err := filepath.Walk(root, walker)
 	check(err)
@@ -51,8 +53,6 @@ func init() {
 	}
 	out, err = os.Create("./log/debug.log")
 	check(err)
-
-	fset = token.NewFileSet()
 }
 
 func check(e error) {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"go/types"
 	"strings"
 )
 
@@ -14,6 +15,8 @@ type Package struct {
 	Vars   []*Value
 	Types  []*Type
 	Funcs  []*Func
+
+  types map[ast.Expr]types.TypeAndValue
 }
 
 type Value struct {
@@ -46,7 +49,7 @@ type Func struct {
 
 var cur_pkg *Package
 
-func NewPkg(pkg *ast.Package) *Package {
+func NewPkg(pkg *ast.Package, types map[ast.Expr]types.TypeAndValue) *Package {
 	p := &Package{}
 
 	p.Name = pkg.Name
@@ -56,9 +59,12 @@ func NewPkg(pkg *ast.Package) *Package {
 	p.Types = []*Type{}
 	p.Funcs = []*Func{}
 
+  p.types = types
+
 	cur_pkg = p
 
 	p.read(pkg)
+
 
 	return p
 }
@@ -301,40 +307,49 @@ func readValueSpec(val *ast.ValueSpec) *Value {
 	// We should probably use the fact that the type in the first case is limited
 	// to just a few types of expressions.
 
-	var types, values []string
+	var vtypes, values []string
+	vtypes = make([]string, len(val.Names))
 	hasType := val.Type != nil
 	if hasType {
-		typ := readTypeExpr(val.Type)[0]
-		types = make([]string, len(val.Names))
-		for i := 0; i < len(types); i++ {
-			types[i] = typ
+    typ := cur_pkg.types[val.Type].Type.String()
+		for i := 0; i < len(vtypes); i++ {
+			vtypes[i] = typ
 		}
 	}
 	if val.Values != nil {
-		multiReturn := false
-		if !hasType {
-			types = make([]string, 0, len(val.Names))
-			multiReturn = len(val.Values) < len(val.Names)
-		}
+    i := 0
 		values = make([]string, 0, len(val.Names))
 		for _, v := range val.Values {
-			rtypes, rvalues := readValueExpr(v)
-			if !hasType && rtypes != nil {
-				if multiReturn {
-					types = append(types, rtypes...)
-				} else {
-					types = append(types, rtypes[0])
-				}
+      tnv := cur_pkg.types[v]
+      vlog(tnv)
+      vlog(tnv.Type)
+			if !hasType {
+        typ := tnv.Type.String()
+        switch tnv.Type.(type) {
+        case *types.Tuple:
+          tuple := strings.Split(typ[1:len(typ) - 1], ", ")
+          for _, t := range tuple {
+            vtypes[i] = t
+            i++
+          }
+        case *types.Named:
+          named := tnv.Type.(*types.Named)
+          vtypes[i] = named.Obj().Name() // Perhaps include pkg
+          i++
+        default:
+          vtypes[i] = typ
+          i++
+        }
 			}
-			if rvalues != nil {
-				values = append(values, rvalues...)
+			if tnv.Value != nil {
+				values = append(values, tnv.Value.String())
 			}
 		}
 	}
 
 	v := &Value{
 		Names:  names,
-		Types:  types,
+    Types:  vtypes,
 		Decl:   val,
 		Values: values,
 	}

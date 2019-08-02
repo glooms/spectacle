@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/doc"
 	"go/printer"
+	"go/token"
 	"os"
 )
 
@@ -22,7 +23,7 @@ func vlog(i interface{}, prefix ...interface{}) {
 
 // docPrint pretty prints all decls using "go/doc" and "go/printer".
 // Use it as a reference when needed.
-func docPrint(pkg *ast.Package, path string) {
+func docPrint(pkg *ast.Package, fset *token.FileSet, path string) {
 	p := doc.New(pkg, path, doc.AllDecls)
 	fmt.Println("doc:", p.Doc)
 	fmt.Println("name:", p.Name)
