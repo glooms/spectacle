@@ -320,12 +320,13 @@ func readValueSpec(val *ast.ValueSpec) *Value {
     i := 0
 		values = make([]string, 0, len(val.Names))
 		for _, v := range val.Values {
-      tnv := cur_pkg.types[v]
-      vlog(tnv)
-      vlog(tnv.Type)
+      tv := cur_pkg.types[v] // types.TypeAndValue
+      vlog(tv)
+      vlog(tv.Type)
+      vlog(tv.Value)
 			if !hasType {
-        typ := tnv.Type.String()
-        switch tnv.Type.(type) {
+        typ := tv.Type.String()
+        switch tv.Type.(type) {
         case *types.Tuple:
           tuple := strings.Split(typ[1:len(typ) - 1], ", ")
           for _, t := range tuple {
@@ -333,7 +334,7 @@ func readValueSpec(val *ast.ValueSpec) *Value {
             i++
           }
         case *types.Named:
-          named := tnv.Type.(*types.Named)
+          named := tv.Type.(*types.Named)
           vtypes[i] = named.Obj().Name() // Perhaps include pkg
           i++
         default:
@@ -341,8 +342,9 @@ func readValueSpec(val *ast.ValueSpec) *Value {
           i++
         }
 			}
-			if tnv.Value != nil {
-				values = append(values, tnv.Value.String())
+			if tv.Value != nil {
+        value := tv.Value.String()
+				values = append(values, value)
 			}
 		}
 	}

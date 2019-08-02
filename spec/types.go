@@ -16,21 +16,14 @@ func typeCheck(fset *token.FileSet, astPkg *ast.Package) (map[ast.Expr]types.Typ
   info := &types.Info{
     Types: map[ast.Expr]types.TypeAndValue{},
   }
-  pkg, err := conf.Check(path, fset, files, info)
+  _, err := conf.Check(path, fset, files, info)
   if err != nil {
     return nil, err
   }
-  checker := types.NewChecker(conf, fset, pkg, info)
-  _ = checker.Files(files)
-  /*
-  for k, v := range info.Types {
-    s := v.Type.String()
-    if v.Value != nil {
-      s += ": " + v.Value.String()
-    }
-    vlog(k)
-    log(s)
-  } */
+//  for k, v := range info.Types {
+//    vlog(k)
+//    vlog(v)
+//  }
   return info.Types, nil
 }
 
