@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go/ast"
 	"go/doc"
-	"go/parser"
 	"go/printer"
 	"go/token"
 	"os"
@@ -17,7 +16,15 @@ var debug_out *os.File
 
 var specs map[string]*Spec
 
-func Build(root string) map[string]*Spec {
+// Build goes through all subdirectories of the specifed
+// directory and create a new Spec for each one.
+//
+// A map containing all found Specs is returned
+//
+// If exported is true, only exported consts, types, etc. is
+// included in each specification.
+//
+func Build(root string, exported bool) map[string]*Spec {
   specs = map[string]*Spec{}
 	err := filepath.Walk(root, walker)
 	check(err)
@@ -30,10 +37,13 @@ func init() {
   }
 }
 
+// filter is used to filter out go test files.
 func filter(fi os.FileInfo) bool {
 	return !strings.Contains(fi.Name(), "test")
 }
 
+// walker is the walking function used for going through all subdirectories
+// of a specified directory.
 func walker(path string, fi os.FileInfo, err error) error {
 	if err != nil {
 		return err
@@ -41,20 +51,22 @@ func walker(path string, fi os.FileInfo, err error) error {
 	if !fi.IsDir() {
 		return nil
 	}
-  fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, path, filter, parser.ParseComments)
-	if err != nil {
-		return err
-	}
-	for _, pkg := range pkgs {
-		if pkg.Name != "main" {
-      createLogs(pkg.Name)
-      spec := New(fset, pkg)
-      log(spec.String())
-      specs[pkg.Name] = spec
-      closeLogs()
-		}
-	}
+  // Don't go through hidden files, probably not go code in there.
+  if path[0] == '.' {
+    return nil
+  }
+
+  createLogs(path)
+  defer closeLogs()
+
+  spec, _ := New(path)
+  if spec == nil {
+    return nil
+  }
+  fmt.Println("Found: '" + spec.Name + "'")
+  log(spec.String())
+  specs[spec.Name] = spec
+
 	return nil
 }
 

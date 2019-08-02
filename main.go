@@ -10,8 +10,8 @@ import (
 func main() {
 	if len(os.Args) > 1 {
 		fmt.Println(os.Args[1])
-		spec.Build(os.Args[1])
+		spec.Build(os.Args[1], false)
 	} else {
-		spec.Build(".")
+		spec.Build(".", false)
 	}
 }

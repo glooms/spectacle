@@ -1,13 +1,18 @@
 package spec
 
 import (
+  "errors"
   "go/ast"
   "go/importer"
+	"go/parser"
   "go/token"
 	"go/types"
   "sort"
 )
 
+// Spec represents a specification of a go package.
+// It is usually built with the Build function but can also
+// be built directly with New.
 type Spec struct {
 	Name string
 
@@ -21,9 +26,15 @@ type Spec struct {
   sorted bool
 }
 
-func New(fset *token.FileSet, pkg *ast.Package) *Spec {
+// New builds a Spec based on the contents of a directory.
+//
+// The function will be successful under two conditions:
+//
+//   1. There are .go files in the directory.
+//   2. All .go files belong to the same package.
+//
+func New(path string) (*Spec, error) {
   var spec Spec
-  spec.Name = pkg.Name
 
   spec.Consts = []string{}
   spec.Vars   = []string{}
@@ -32,13 +43,38 @@ func New(fset *token.FileSet, pkg *ast.Package) *Spec {
 
   spec.Objects = map[string]types.Object{}
 
-  spec.build(fset, pkg)
+  err := spec.build(path)
+  if err != nil {
+    return nil, err
+  }
 
-  return &spec
+  return &spec, nil
 }
 
-func (s *Spec) build(fset *token.FileSet, pkg *ast.Package) error {
-  path := pkg.Name
+// build is the workhorse that builds a Spec.
+func (s *Spec) build(path string) error {
+  fset := token.NewFileSet()
+	pkgs, err := parser.ParseDir(fset, path, filter, parser.ParseComments)
+
+  if err != nil {
+    return err
+  }
+
+  if len(pkgs) > 1 {
+    return errors.New("found multiple packages")
+  }
+
+  if len(pkgs) == 0 {
+    return errors.New("found no package")
+  }
+
+  var pkg *ast.Package
+  for _, v := range pkgs {
+    pkg = v
+  }
+
+  s.Name = pkg.Name
+
   conf := &types.Config{Importer: importer.Default()}
 
   files := make([]*ast.File, len(pkg.Files))
@@ -47,20 +83,27 @@ func (s *Spec) build(fset *token.FileSet, pkg *ast.Package) error {
     files[i] = file
     i++
   }
+
   p, err := conf.Check(path, fset, files, nil)
   if err != nil {
     return err
   }
+
   scope := p.Scope()
   for _, name := range scope.Names() {
     o := scope.Lookup(name)
-    s.addObj(o)
+    s.add(o)
   }
+
   return nil
 }
 
 
+// String is a template implementation of how Spec could be represented.
+// Note that it contains newlines which might be frowned upon.
 func (s *Spec) String() string {
+  var str string
+
   if !s.sorted {
     sort.Strings(s.Consts)
     sort.Strings(s.Vars)
@@ -68,7 +111,6 @@ func (s *Spec) String() string {
     sort.Strings(s.Types)
     s.sorted = true
   }
-  var str string
 
   str += "package: " + s.Name + "\n"
 
@@ -104,7 +146,10 @@ func (s *Spec) String() string {
   return str
 }
 
-func (s *Spec) addObj(o types.Object) {
+
+// add adds an Object to the Spec. Objects other than
+// Funcs, Consts, Vars or Types are ignored.
+func (s *Spec) add(o types.Object) {
 
   switch o.(type) {
 
@@ -126,35 +171,4 @@ func (s *Spec) addObj(o types.Object) {
   s.Objects[o.Name()] = o
 
   s.sorted = false
-}
-
-func TypeString(t types.Type) string {
-  var s string
-  vdebug(t, "type: ")
-
-start:
-  switch t.(type) {
-  case *types.Basic:
-  case *types.Pointer:
-  case *types.Array:
-  case *types.Slice:
-  case *types.Map:
-  case *types.Chan:
-  case *types.Struct:
-  case *types.Tuple:
-  case *types.Signature:
-  case *types.Named:
-    t = t.Underlying()
-    goto start
-  case *types.Interface:
-    t := t.(*types.Interface)
-    for i := 0; i < t.NumMethods(); i++ {
-      s += t.Method(i).String() + " "
-    }
-  default:
-    t = t.Underlying()
-    goto start
-  }
-
-  return s
 }
