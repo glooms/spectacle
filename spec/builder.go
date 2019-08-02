@@ -6,6 +6,7 @@ import (
 	"go/doc"
 	"go/printer"
 	"go/token"
+  "io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,7 +25,7 @@ var specs map[string]*Spec
 // If exported is true, only exported consts, types, etc. is
 // included in each specification.
 //
-func Build(root string, exported bool) map[string]*Spec {
+func Build(root string) map[string]*Spec {
   specs = map[string]*Spec{}
 	err := filepath.Walk(root, walker)
 	check(err)
@@ -53,6 +54,21 @@ func walker(path string, fi os.FileInfo, err error) error {
 	}
   // Don't go through hidden files, probably not go code in there.
   if path[0] == '.' {
+    return nil
+  }
+  files, err := ioutil.ReadDir(path)
+  if err != nil {
+    return err
+  }
+  // Check if there are any .go files in the directory.
+  var any bool
+  for _, f := range files {
+    if strings.Contains(f.Name(), ".go") {
+      any = true
+      break
+    }
+  }
+  if !any {
     return nil
   }
 

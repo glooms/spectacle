@@ -18,13 +18,18 @@ Using the builtin compiler packages in go, such as `go/` - `ast`, `token` and `p
 What remains to be done.
 
   1. ~~Lookup assigned values for consts (and variables).~~
-  2. Handle imports (for lookups) -- seems to be pretty hard.
-  3. Handle concurrency errors, probably by first finding decls and then resolving.
-  4. Filter unexported consts, variables, funcs and types.
-  5. Sort all that is exported in alphabetical order (in groups).
+  2. ~~Handle imports (for lookups) -- seems to be pretty hard.~~
+  3. ~~Handle concurrency errors, probably by first finding decls and then resolving.~~
+  4. ~~Filter unexported consts, variables, funcs and types.~~
+  5. ~~Sort all that is exported in alphabetical order (in groups).~~
   6. Group methods with their receivers.
   7. Specify API specification format (some architect please).
   8. Choose and implement yaml or json specification generation.
+  9. Include parsed comments?
 
-Lastly, the code is a bit messy and it needs to be cleaner and we need solid test cases.
-Anything that can be handled by the go compiler should preferably be handled by this packages as well, but that might be a dream.
+After some research I found the **go/types** package which provides almost all utilities need to create
+a general and robust implementation of a golang specificatios.
+
+The only drawback is that I've not yet found how to include the parsed documentation from the source files.
+
+What remains now is to get some clarity as to what the specification should look like. Research concluded.

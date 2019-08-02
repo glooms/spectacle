@@ -10,6 +10,10 @@ import (
   "sort"
 )
 
+// ExportedOnly determines whether only exported Objects should be included or not.
+// Default false.
+var ExportedOnly bool
+
 // Spec represents a specification of a go package.
 // It is usually built with the Build function but can also
 // be built directly with New.
@@ -150,6 +154,9 @@ func (s *Spec) String() string {
 // add adds an Object to the Spec. Objects other than
 // Funcs, Consts, Vars or Types are ignored.
 func (s *Spec) add(o types.Object) {
+  if ExportedOnly && !o.Exported() {
+    return
+  }
 
   switch o.(type) {
 
